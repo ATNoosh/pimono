@@ -108,6 +108,10 @@ const handleSubmit = async () => {
 
 <style scoped>
 .login-form {
-  @apply min-h-screen flex items-center justify-center bg-gray-50;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9fafb;
 }
 </style>

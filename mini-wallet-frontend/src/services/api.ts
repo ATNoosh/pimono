@@ -77,8 +77,8 @@ export const authService = {
     return response.data
   },
 
-  async register(name: string, email: string, password: string) {
-    const response = await api.post('/register', { name, email, password })
+  async register(name: string, email: string, password: string, password_confirmation: string) {
+    const response = await api.post('/register', { name, email, password, password_confirmation })
     const token = response.data.token
     localStorage.setItem('auth_token', token)
     return response.data

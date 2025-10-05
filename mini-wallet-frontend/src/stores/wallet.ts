@@ -18,7 +18,11 @@ export const useWalletStore = defineStore('wallet', () => {
   // Actions
   const setUser = (userData: User) => {
     user.value = userData
-    balance.value = userData.balance
+    // Ensure balance is a number
+    const balanceValue = typeof userData.balance === 'string' 
+      ? parseFloat(userData.balance) 
+      : userData.balance
+    balance.value = balanceValue || 0
   }
 
   const setTransactions = (transactionData: Transaction[]) => {
@@ -30,9 +34,9 @@ export const useWalletStore = defineStore('wallet', () => {
   }
 
   const updateBalance = (newBalance: number) => {
-    balance.value = newBalance
+    balance.value = newBalance || 0
     if (user.value) {
-      user.value.balance = newBalance
+      user.value.balance = newBalance || 0
     }
   }
 
@@ -50,7 +54,11 @@ export const useWalletStore = defineStore('wallet', () => {
       setError(null)
       const response = await transactionService.getTransactions()
       setTransactions(response.transactions.data)
-      updateBalance(response.balance)
+      // Ensure balance is a number
+      const balanceValue = typeof response.balance === 'string' 
+        ? parseFloat(response.balance) 
+        : response.balance
+      updateBalance(balanceValue || 0)
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch transactions')
       throw err

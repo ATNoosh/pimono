@@ -63,6 +63,7 @@ onUnmounted(() => {
 
 <style scoped>
 .wallet-view {
-  @apply min-h-screen bg-gray-50;
+  min-height: 100vh;
+  background-color: #f9fafb;
 }
 </style>

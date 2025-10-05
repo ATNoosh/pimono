@@ -12,7 +12,6 @@ export const initializePusher = (userId: number) => {
 
   pusher = new Pusher(PUSHER_KEY, {
     cluster: PUSHER_CLUSTER,
-    encrypted: true,
     authEndpoint: '/api/broadcasting/auth',
     auth: {
       headers: {

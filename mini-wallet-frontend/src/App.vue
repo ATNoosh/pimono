@@ -1,19 +1,27 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import { useWalletStore } from '@/stores/wallet'
+import { authService } from '@/services/api'
 import { onMounted } from 'vue'
 
 const walletStore = useWalletStore()
 
-onMounted(() => {
+onMounted(async () => {
   // Check if user is already logged in
   const token = localStorage.getItem('auth_token')
   if (token) {
-    // Try to get user data
-    walletStore.fetchTransactions().catch(() => {
+    try {
+      // First get user data
+      const userResponse = await authService.getUser()
+      walletStore.setUser(userResponse.user)
+      
+      // Then fetch transactions
+      await walletStore.fetchTransactions()
+    } catch (error) {
       // If failed, remove invalid token
       localStorage.removeItem('auth_token')
-    })
+      console.error('Failed to initialize user:', error)
+    }
   }
 })
 </script>

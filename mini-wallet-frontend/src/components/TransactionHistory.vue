@@ -58,10 +58,10 @@
               class="text-lg font-semibold"
               :class="isSentTransaction(transaction) ? 'text-red-600' : 'text-green-600'"
             >
-              {{ isSentTransaction(transaction) ? '-' : '+' }}${{ transaction.amount.toFixed(2) }}
+              {{ isSentTransaction(transaction) ? '-' : '+' }}${{ (transaction.amount || 0).toFixed(2) }}
             </p>
             <p v-if="isSentTransaction(transaction)" class="text-sm text-gray-500">
-              Fee: ${{ transaction.commission_fee.toFixed(2) }}
+              Fee: ${{ (transaction.commission_fee || 0).toFixed(2) }}
             </p>
             <span
               class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
@@ -94,7 +94,14 @@ import type { Transaction } from '@/services/api'
 const walletStore = useWalletStore()
 
 const transactions = computed(() => walletStore.transactions)
-const balance = computed(() => walletStore.balance)
+const balance = computed(() => {
+  const balanceValue = walletStore.balance
+  if (balanceValue === null || balanceValue === undefined) {
+    return 0
+  }
+  const numValue = Number(balanceValue)
+  return isNaN(numValue) ? 0 : numValue
+})
 
 const isSentTransaction = (transaction: Transaction) => {
   return transaction.sender_id === walletStore.user?.id
@@ -142,6 +149,9 @@ onMounted(() => {
 
 <style scoped>
 .transaction-history {
-  @apply bg-white p-6 rounded-lg shadow-md;
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>

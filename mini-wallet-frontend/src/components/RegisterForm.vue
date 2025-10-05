@@ -134,7 +134,8 @@ const handleSubmit = async () => {
     const response = await authService.register(
       form.name,
       form.email,
-      form.password
+      form.password,
+      form.password_confirmation
     )
     
     // Set user in store
@@ -153,6 +154,10 @@ const handleSubmit = async () => {
 
 <style scoped>
 .register-form {
-  @apply min-h-screen flex items-center justify-center bg-gray-50;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9fafb;
 }
 </style>
