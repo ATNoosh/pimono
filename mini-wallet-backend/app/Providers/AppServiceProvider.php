@@ -19,6 +19,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // You can schedule the outbox dispatcher in App\Console\Kernel if desired
     }
 }

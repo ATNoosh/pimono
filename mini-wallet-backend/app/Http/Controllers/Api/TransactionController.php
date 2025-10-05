@@ -13,6 +13,15 @@ use Illuminate\Validation\ValidationException;
 
 class TransactionController extends Controller
 {
+    private function isTransientTransactionError(\Throwable $e): bool
+    {
+        $message = $e->getMessage();
+        // MySQL deadlock or lock wait timeout, PostgreSQL serialization failure
+        return str_contains($message, 'Deadlock found')
+            || str_contains($message, 'Lock wait timeout exceeded')
+            || str_contains($message, 'could not serialize access due to')
+            || str_contains($message, 'deadlock detected');
+    }
     /**
      * Get transaction history and current balance for authenticated user.
      */
@@ -67,52 +76,86 @@ class TransactionController extends Controller
         $commissionFee = Transaction::calculateCommission($amount);
         $totalAmount = Transaction::calculateTotalAmount($amount);
 
-        // Check if sender has sufficient balance
-        if (!$sender->hasSufficientBalance($totalAmount)) {
-            return response()->json([
-                'message' => 'Insufficient balance',
-                'required' => $totalAmount,
-                'available' => $sender->balance,
-            ], 422);
+        // Idempotency support
+        $idempotencyKey = $request->header('Idempotency-Key') ?? $request->input('idempotency_key');
+
+        // Retry on deadlocks/transient errors
+        $maxAttempts = 3;
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            try {
+                $transaction = DB::transaction(function () use ($sender, $receiver, $amount, $commissionFee, $totalAmount, $idempotencyKey) {
+                    // Lock user rows to avoid race conditions
+                    $lockedSender = User::where('id', $sender->id)->lockForUpdate()->firstOrFail();
+                    $lockedReceiver = User::where('id', $receiver->id)->lockForUpdate()->firstOrFail();
+
+                    // Re-check sufficient balance under lock
+                    if (!$lockedSender->hasSufficientBalance($totalAmount)) {
+                        abort(422, 'Insufficient balance');
+                    }
+
+                    // Basic idempotency: if the same key exists, return previous transaction
+                    if ($idempotencyKey) {
+                        $existing = DB::table('idempotency_keys')->where('key', $idempotencyKey)->first();
+                        if ($existing && $existing->transaction_id) {
+                            return Transaction::with(['sender:id,name', 'receiver:id,name'])->findOrFail($existing->transaction_id);
+                        }
+                    }
+
+                    // Create transaction record
+                    $transaction = Transaction::create([
+                        'sender_id' => $lockedSender->id,
+                        'receiver_id' => $lockedReceiver->id,
+                        'amount' => $amount,
+                        'commission_fee' => $commissionFee,
+                        'total_amount' => $totalAmount,
+                        'status' => 'pending',
+                    ]);
+
+                    // Update balances atomically
+                    $lockedSender->deductBalance($totalAmount);
+                    $lockedReceiver->addBalance($amount);
+
+                    // Mark transaction as completed
+                    $transaction->markAsCompleted();
+
+                    // Store idempotency record inside the same transaction
+                    if ($idempotencyKey) {
+                        DB::table('idempotency_keys')->updateOrInsert(
+                            ['key' => $idempotencyKey],
+                            ['user_id' => $lockedSender->id, 'transaction_id' => $transaction->id, 'updated_at' => now(), 'created_at' => now()]
+                        );
+                    }
+
+                    // Write to outbox for reliable dispatch
+                    DB::table('outbox_messages')->insert([
+                        'type' => 'transaction.completed',
+                        'payload' => json_encode(['transaction_id' => $transaction->id]),
+                        'available_at' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                    return $transaction;
+                });
+
+                return response()->json([
+                    'message' => 'Transfer completed successfully',
+                    'transaction' => $transaction->load(['sender:id,name', 'receiver:id,name']),
+                    'new_balance' => $sender->fresh()->balance,
+                ], 201);
+            } catch (\Throwable $e) {
+                if ($this->isTransientTransactionError($e) && $attempt < $maxAttempts) {
+                    usleep(100000 * $attempt); // backoff
+                    continue;
+                }
+                $status = $e->getCode() == 422 ? 422 : 500;
+                return response()->json([
+                    'message' => $status === 422 ? 'Insufficient balance' : 'Transfer failed',
+                    'error' => $e->getMessage(),
+                ], $status);
+            }
         }
-
-        try {
-            // Use database transaction for atomicity
-            $transaction = DB::transaction(function () use ($sender, $receiver, $amount, $commissionFee, $totalAmount) {
-                // Create transaction record
-                $transaction = Transaction::create([
-                    'sender_id' => $sender->id,
-                    'receiver_id' => $receiver->id,
-                    'amount' => $amount,
-                    'commission_fee' => $commissionFee,
-                    'total_amount' => $totalAmount,
-                    'status' => 'pending',
-                ]);
-
-                // Update balances atomically
-                $sender->deductBalance($totalAmount);
-                $receiver->addBalance($amount);
-
-                // Mark transaction as completed
-                $transaction->markAsCompleted();
-
-                return $transaction;
-            });
-
-            // Broadcast real-time event
-            event(new \App\Events\TransactionCompleted($transaction));
-
-            return response()->json([
-                'message' => 'Transfer completed successfully',
-                'transaction' => $transaction->load(['sender:id,name', 'receiver:id,name']),
-                'new_balance' => $sender->fresh()->balance,
-            ], 201);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Transfer failed',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        // Should not reach here
+        return response()->json(['message' => 'Transfer failed'], 500);
     }
 }

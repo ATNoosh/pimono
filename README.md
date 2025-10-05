@@ -108,6 +108,117 @@ pimono/
 
 The API will be available at `http://localhost:8000`
 
+### High Concurrency Features
+
+- Atomic transfers in a single DB transaction
+- Row-level locking on `users` with `lockForUpdate()` and in-transaction balance re-check
+- Retry with exponential backoff on transient errors (deadlocks/serialization failures)
+- Decimal monetary fields and 1.5% commission calculation
+- Idempotency via `Idempotency-Key` headers (stored in `idempotency_keys`)
+- Outbox pattern (`outbox_messages`) for reliable event dispatch of `transaction.completed`
+
+#### Database migrations
+
+Run migrations after pulling changes:
+
+```bash
+php artisan migrate
+```
+
+Creates/updates tables:
+- `transactions`, `idempotency_keys`, `outbox_messages`
+- Adds DB-level CHECK constraint for non-negative balance when supported
+
+#### Outbox dispatch (local/dev)
+
+Console command:
+
+```bash
+php artisan outbox:dispatch --limit=200
+```
+
+Dev HTTP endpoint (local env, requires auth):
+
+```http
+POST /api/dev/outbox/dispatch
+Authorization: Bearer <token>
+```
+
+For production, schedule the command with cron/Supervisor to run every minute (or faster as needed).
+
+##### Production scheduling examples
+
+Option A) Use Laravel scheduler (recommended):
+
+1. Ensure your server cron runs the Laravel scheduler every minute:
+
+```cron
+* * * * * cd /path/to/mini-wallet-backend && php artisan schedule:run >> /dev/null 2>&1
+```
+
+2. Then register the command in `app/Console/Kernel.php` (if you use scheduler):
+
+```php
+protected function schedule(\Illuminate\Console\Scheduling\Schedule $schedule): void
+{
+    $schedule->command('outbox:dispatch --limit=500')->everyMinute();
+}
+```
+
+Option B) Call the command directly via cron (no scheduler):
+
+```cron
+* * * * * cd /path/to/mini-wallet-backend && php artisan outbox:dispatch --limit=500 >> storage/logs/outbox.log 2>&1
+```
+
+Option C) Supervisor program for continuous dispatch (burstier loads):
+
+`/etc/supervisor/conf.d/outbox.conf`
+
+```
+[program:wallet-outbox]
+command=php artisan outbox:dispatch --limit=1000
+directory=/path/to/mini-wallet-backend
+autostart=true
+autorestart=true
+user=www-data
+numprocs=1
+stdout_logfile=/path/to/mini-wallet-backend/storage/logs/outbox_supervisor.log
+stderr_logfile=/path/to/mini-wallet-backend/storage/logs/outbox_supervisor_error.log
+startsecs=0
+stopwaitsecs=10
+```
+
+Reload supervisor:
+
+```bash
+sudo supervisorctl reread && sudo supervisorctl update && sudo supervisorctl restart wallet-outbox
+```
+
+#### Idempotency
+
+Frontend automatically sends a unique `Idempotency-Key` header for `POST /api/transactions`. Backend de-duplicates using `idempotency_keys`.
+
+To manually test idempotency with cURL:
+
+```bash
+KEY="test-key-$(date +%s)"
+curl -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $KEY" \
+  -d '{"receiver_id":2, "amount":100.00}' \
+  http://localhost:8000/api/transactions
+
+# Replaying the same request will return the same transaction
+curl -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $KEY" \
+  -d '{"receiver_id":2, "amount":100.00}' \
+  http://localhost:8000/api/transactions
+```
+
 ### Frontend Setup
 
 1. **Navigate to frontend directory:**
@@ -138,6 +249,34 @@ The API will be available at `http://localhost:8000`
    ```
 
 The frontend will be available at `http://localhost:5173`
+
+## Makefile shortcuts
+
+For convenience on Unix-like systems:
+
+```bash
+make setup-backend      # install deps and migrate
+make serve-backend      # run php artisan serve
+make outbox-dispatch    # run outbox dispatcher once
+make setup-frontend     # install frontend deps
+make dev-frontend       # vite dev server
+make build-frontend     # build frontend
+```
+
+## Windows PowerShell scripts
+
+For Windows users without `make`:
+
+```powershell
+# Backend setup (install + migrate)
+./scripts/backend-setup.ps1
+
+# Frontend setup (npm install)
+./scripts/frontend-setup.ps1
+
+# Run outbox dispatcher once (optional limit)
+./scripts/outbox-dispatch.ps1 -Limit 500
+```
 
 ## API Endpoints
 

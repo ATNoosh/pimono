@@ -16,6 +16,13 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  // Add Idempotency-Key for POST transfers
+  if (config.method?.toLowerCase() === 'post' && config.url?.endsWith('/transactions')) {
+    if (!config.headers['Idempotency-Key']) {
+      const key = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+      config.headers['Idempotency-Key'] = key
+    }
+  }
   return config
 })
 

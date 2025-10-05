@@ -27,6 +27,14 @@ return new class extends Migration
             $table->index(['receiver_id', 'created_at']);
             $table->index('status');
         });
+
+        Schema::create('idempotency_keys', function (Blueprint $table) {
+            $table->id();
+            $table->string('key')->unique();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('transaction_id')->nullable()->constrained('transactions')->onDelete('cascade');
+            $table->timestamps();
+        });
     }
 
     /**
