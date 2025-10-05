@@ -1,14 +1,22 @@
 <template>
   <div class="wallet-view">
-    <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 py-8">
       <!-- Header -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Mini Wallet</h1>
-        <p class="text-gray-600">Welcome back, {{ walletStore.user?.name }}!</p>
+        <div class="flex items-end justify-between">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Mini Wallet</h1>
+            <p class="text-gray-600">Welcome back, {{ walletStore.user?.name }}!</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm text-gray-500">Current Balance</p>
+            <p class="text-3xl font-extrabold text-green-600">${{ balance.toFixed(2) }}</p>
+          </div>
+        </div>
       </div>
 
       <!-- Main Content Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
         <!-- Transfer Form -->
         <div class="order-2 lg:order-1">
           <TransferForm />
@@ -39,13 +47,19 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, computed } from 'vue'
 import { useWalletStore } from '@/stores/wallet'
 import TransferForm from '@/components/TransferForm.vue'
 import TransactionHistory from '@/components/TransactionHistory.vue'
 
 const walletStore = useWalletStore()
 const isConnected = ref(false)
+const balance = computed(() => {
+  const value = walletStore.balance
+  if (value === null || value === undefined) return 0
+  const n = Number(value)
+  return Number.isNaN(n) ? 0 : n
+})
 
 onMounted(async () => {
   // Initialize real-time updates

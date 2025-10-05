@@ -1,6 +1,6 @@
 <template>
   <div class="register-form">
-    <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
+    <div class="max-w-3xl mx-auto bg-white p-10 rounded-xl shadow-lg ring-1 ring-gray-100">
       <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Create Account</h2>
       
       <form @submit.prevent="handleSubmit" class="space-y-6">
@@ -18,7 +18,7 @@
           />
         </div>
 
-        <div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
             Email
           </label>
@@ -32,7 +32,7 @@
           />
         </div>
 
-        <div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
             Password
           </label>
@@ -48,7 +48,7 @@
           <p class="mt-1 text-sm text-gray-500">Password must be at least 8 characters long</p>
         </div>
 
-        <div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
             Confirm Password
           </label>

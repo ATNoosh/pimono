@@ -3,8 +3,14 @@ import { RouterLink, RouterView } from 'vue-router'
 import { useWalletStore } from '@/stores/wallet'
 import { authService } from '@/services/api'
 import { onMounted } from 'vue'
+import router from '@/router'
 
 const walletStore = useWalletStore()
+
+const onLogout = async () => {
+  await walletStore.logout()
+  router.push('/login')
+}
 
 onMounted(async () => {
   // Check if user is already logged in
@@ -13,7 +19,7 @@ onMounted(async () => {
     try {
       // First get user data
       const userResponse = await authService.getUser()
-      walletStore.setUser(userResponse.user)
+      walletStore.setUser(userResponse)
       
       // Then fetch transactions
       await walletStore.fetchTransactions()
@@ -27,23 +33,26 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div id="app">
+  <div class="app-root">
     <!-- Navigation -->
-    <nav v-if="walletStore.isAuthenticated" class="bg-white shadow-sm border-b">
+    <nav v-if="walletStore.isAuthenticated" class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center">
             <RouterLink to="/wallet" class="text-xl font-bold text-gray-900">
-              Mini Wallet
+              <span class="inline-flex items-center gap-2">
+                <span class="inline-block h-6 w-6 rounded-md bg-blue-600"></span>
+                Mini Wallet
+              </span>
             </RouterLink>
           </div>
           <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-600">
+            <span class="text-sm text-gray-600 hidden sm:inline">
               Welcome, {{ walletStore.user?.name }}
             </span>
             <button
-              @click="walletStore.logout()"
-              class="text-sm text-gray-600 hover:text-gray-900"
+              @click="onLogout"
+              class="text-sm text-gray-600 hover:text-gray-900 rounded-md px-3 py-1.5 border border-gray-200 hover:border-gray-300"
             >
               Logout
             </button>
@@ -53,8 +62,10 @@ onMounted(async () => {
     </nav>
 
     <!-- Main Content -->
-    <main>
-      <RouterView />
+    <main class="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <RouterView />
+      </div>
     </main>
   </div>
 </template>

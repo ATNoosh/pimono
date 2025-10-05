@@ -30,9 +30,12 @@ const router = createRouter({
 })
 
 // Navigation guards
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const walletStore = useWalletStore()
-  
+
+  // Ensure auth state is restored from token on hard refresh
+  await walletStore.ensureAuthenticated()
+
   if (to.meta.requiresAuth && !walletStore.isAuthenticated) {
     next('/login')
   } else if (to.meta.requiresGuest && walletStore.isAuthenticated) {

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { transactionService, type User, type Transaction } from '@/services/api'
+import { transactionService, authService, type User, type Transaction } from '@/services/api'
 import { initializePusher, subscribeToUserChannel, disconnectPusher } from '@/services/pusher'
 
 export const useWalletStore = defineStore('wallet', () => {
@@ -16,12 +16,17 @@ export const useWalletStore = defineStore('wallet', () => {
   const recentTransactions = computed(() => transactions.value.slice(0, 10))
 
   // Actions
-  const setUser = (userData: User) => {
+  const setUser = (userData: User | null | undefined) => {
+    if (!userData) {
+      user.value = null
+      balance.value = 0
+      return
+    }
     user.value = userData
     // Ensure balance is a number
-    const balanceValue = typeof userData.balance === 'string' 
-      ? parseFloat(userData.balance) 
-      : userData.balance
+    const balanceValue = typeof (userData as any).balance === 'string' 
+      ? parseFloat((userData as any).balance) 
+      : (userData as any).balance
     balance.value = balanceValue || 0
   }
 
@@ -107,12 +112,32 @@ export const useWalletStore = defineStore('wallet', () => {
     })
   }
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await authService.logout()
+    } catch (e) {
+      // ignore network errors on logout
+    }
+    localStorage.removeItem('auth_token')
     user.value = null
     transactions.value = []
     balance.value = 0
     error.value = null
     disconnectPusher()
+  }
+
+  const ensureAuthenticated = async (): Promise<boolean> => {
+    if (user.value) return true
+    const token = localStorage.getItem('auth_token')
+    if (!token) return false
+    try {
+      const me = await authService.getUser()
+      setUser(me)
+      return true
+    } catch {
+      localStorage.removeItem('auth_token')
+      return false
+    }
   }
 
   return {
@@ -135,6 +160,7 @@ export const useWalletStore = defineStore('wallet', () => {
     fetchTransactions,
     createTransaction,
     initializeRealTimeUpdates,
-    logout
+    logout,
+    ensureAuthenticated
   }
 })

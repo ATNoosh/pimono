@@ -1,9 +1,9 @@
 <template>
   <div class="login-form">
-    <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
+    <div class="max-w-3xl mx-auto bg-white p-10 rounded-xl shadow-lg ring-1 ring-gray-100">
       <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Login to Mini Wallet</h2>
       
-      <form @submit.prevent="handleSubmit" class="space-y-6">
+      <form @submit.prevent="handleSubmit" class="space-y-8">
         <div>
           <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
             Email
@@ -52,10 +52,10 @@
         </button>
       </form>
 
-      <div class="mt-6 text-center">
+      <div class="mt-10 text-center">
         <p class="text-sm text-gray-600">
           Don't have an account? 
-          <button @click="$emit('switch-to-register')" class="text-blue-600 hover:text-blue-500">
+          <button @click="$emit('switch-to-register')" class="text-blue-600 hover:text-blue-500 font-medium">
             Register here
           </button>
         </p>
