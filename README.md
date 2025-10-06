@@ -278,6 +278,69 @@ For Windows users without `make`:
 ./scripts/outbox-dispatch.ps1 -Limit 500
 ```
 
+### Queues and Workers for Real-time
+
+For proper real-time functionality (Pusher and Broadcasting), transaction events are queued and a Queue Worker must be running.
+
+1) Required settings in `.env` (Backend):
+
+```env
+# Broadcasting (Pusher)
+BROADCAST_CONNECTION=pusher
+PUSHER_APP_ID=your_app_id
+PUSHER_APP_KEY=your_app_key
+PUSHER_APP_SECRET=your_app_secret
+PUSHER_APP_CLUSTER=mt1
+
+# Queues
+QUEUE_CONNECTION=database
+QUEUE_FAILED_DRIVER=database-uuids
+```
+
+2) Create queue tables (if not already done):
+
+```bash
+php artisan migrate
+```
+
+3) Run Queue Worker:
+
+- Windows (PowerShell):
+
+```powershell
+cd mini-wallet-backend
+php artisan queue:work --queue=default --tries=3 --backoff=5
+```
+
+- Linux/macOS:
+
+```bash
+cd mini-wallet-backend
+php artisan queue:work --queue=default --tries=3 --backoff=5
+```
+
+Note: The `TransactionCompleted` event implements `ShouldBroadcast` and is queued by default; therefore, running a Worker is essential for receiving real-time notifications in the frontend. For immediate broadcasting without queuing, use `ShouldBroadcastNow` instead (not recommended except for debugging/special cases).
+
+4) Stable execution in production (optional):
+
+- Sample Supervisor config for Queue Worker:
+
+```
+[program:wallet-queue]
+command=php artisan queue:work --queue=default --tries=3 --backoff=5
+directory=/path/to/mini-wallet-backend
+autostart=true
+autorestart=true
+user=www-data
+numprocs=1
+stdout_logfile=/path/to/mini-wallet-backend/storage/logs/queue_supervisor.log
+stderr_logfile=/path/to/mini-wallet-backend/storage/logs/queue_supervisor_error.log
+startsecs=0
+stopwaitsecs=10
+```
+
+Note: In addition to the Worker, the `outbox:dispatch` command must also be scheduled/executed for reliable message delivery (Outbox pattern); scheduling examples are provided above in this file.
+
 ## API Endpoints
 
 ### Authentication

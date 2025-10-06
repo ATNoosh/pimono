@@ -135,6 +135,11 @@ class TransactionController extends Controller
                         'updated_at' => now(),
                     ]);
 
+                    // Also dispatch immediately after commit for real-time UX in dev/local
+                    DB::afterCommit(function () use ($transaction) {
+                        event(new \App\Events\TransactionCompleted($transaction));
+                    });
+
                     return $transaction;
                 });
 

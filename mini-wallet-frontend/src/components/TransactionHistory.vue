@@ -58,10 +58,10 @@
               class="text-lg font-semibold"
               :class="isSentTransaction(transaction) ? 'text-red-600' : 'text-green-600'"
             >
-              {{ isSentTransaction(transaction) ? '-' : '+' }}${{ (transaction.amount || 0).toFixed(2) }}
+              {{ isSentTransaction(transaction) ? '-' : '+' }}${{ Number(transaction.amount ?? 0).toFixed(2) }}
             </p>
             <p v-if="isSentTransaction(transaction)" class="text-sm text-gray-500">
-              Fee: ${{ (transaction.commission_fee || 0).toFixed(2) }}
+              Fee: ${{ Number(transaction.commission_fee ?? 0).toFixed(2) }}
             </p>
             <span
               class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
