@@ -1,8 +1,8 @@
 <template>
   <div class="wallet-view">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8 py-10 space-y-10">
+    <div class="max-w-8xl mx-auto px-6 lg:px-8 py-6 space-y-6">
       <!-- Header -->
-      <div class="mb-10">
+      <div class="mb-6">
         <div class="bg-white/80 backdrop-blur rounded-xl shadow-sm ring-1 ring-gray-200 p-6">
           <div class="flex items-end justify-between">
             <div>

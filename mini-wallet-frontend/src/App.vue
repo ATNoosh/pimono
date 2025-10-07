@@ -36,7 +36,7 @@ onMounted(async () => {
   <div class="app-root">
     <!-- Navigation -->
     <nav v-if="walletStore.isAuthenticated" class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center">
             <RouterLink to="/wallet" class="text-xl font-bold text-gray-900">
@@ -63,7 +63,7 @@ onMounted(async () => {
 
     <!-- Main Content -->
     <main class="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <RouterView />
       </div>
     </main>
