@@ -1,9 +1,9 @@
 <template>
   <div class="transfer-form">
-    <h2 class="text-2xl font-bold mb-6 text-gray-800">Send Money</h2>
+    <h2 class="text-2xl font-bold mb-8 text-gray-800">Send Money</h2>
     
     <form @submit.prevent="handleSubmit" class="space-y-6">
-      <div>
+      <div class="pt-1">
         <label for="receiver_id" class="block text-sm font-medium text-gray-700 mb-2">
           Receiver ID
         </label>
@@ -13,7 +13,7 @@
           type="number"
           min="1"
           required
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70"
           :class="{ 'border-red-500': errors.receiver_id }"
           placeholder="Enter receiver's user ID"
         />
@@ -22,7 +22,7 @@
         </p>
       </div>
 
-      <div>
+      <div class="pt-2">
         <label for="amount" class="block text-sm font-medium text-gray-700 mb-2">
           Amount
         </label>
@@ -36,7 +36,7 @@
             min="0.01"
             max="999999.99"
             required
-            class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70"
             :class="{ 'border-red-500': errors.amount }"
             placeholder="0.00"
           />
@@ -52,18 +52,18 @@
         </p>
       </div>
 
-      <div v-if="walletStore.error" class="p-4 bg-red-50 border border-red-200 rounded-md">
+      <div v-if="walletStore.error" class="p-4 mt-2 bg-red-50 border border-red-200 rounded-md">
         <p class="text-sm text-red-600">{{ walletStore.error }}</p>
       </div>
 
-      <div v-if="successMessage" class="p-4 bg-green-50 border border-green-200 rounded-md">
+      <div v-if="successMessage" class="p-4 mt-2 bg-green-50 border border-green-200 rounded-md">
         <p class="text-sm text-green-600">{{ successMessage }}</p>
       </div>
 
       <button
         type="submit"
         :disabled="walletStore.loading || !isFormValid"
-        class="w-full bg-blue-600 text-white py-2.5 px-4 rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 px-4 rounded-lg shadow-sm hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
       >
         <span v-if="walletStore.loading" class="flex items-center justify-center">
           <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

@@ -24,22 +24,29 @@
       <p class="text-gray-500">No transactions yet</p>
     </div>
 
-    <div v-else class="space-y-4">
+    <div v-else class="space-y-5">
       <div
         v-for="transaction in transactions"
         :key="transaction.id"
-        class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+        class="bg-white/80 backdrop-blur border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow"
       >
         <div class="flex justify-between items-start">
           <div class="flex-1">
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-5">
               <div
-                class="w-10 h-10 rounded-full flex items-center justify-center"
+                class="w-10 h-10 rounded-full flex items-center justify-center ring-1 ring-inset ring-current/20 shrink-0"
                 :class="getTransactionIconClass(transaction)"
               >
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path v-if="isSentTransaction(transaction)" fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-                  <path v-else fill-rule="evenodd" d="M10 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                  <template v-if="isSentTransaction(transaction)">
+                    <!-- minus -->
+                    <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                  </template>
+                  <template v-else>
+                    <!-- plus (horizontal + vertical) -->
+                    <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                  </template>
                 </svg>
               </div>
               <div>
@@ -53,7 +60,7 @@
               </div>
             </div>
           </div>
-          <div class="text-right">
+          <div class="text-right ml-4">
             <p
               class="text-lg font-semibold"
               :class="isSentTransaction(transaction) ? 'text-red-600' : 'text-green-600'"
@@ -63,7 +70,7 @@
             <p v-if="isSentTransaction(transaction)" class="text-sm text-gray-500">
               Fee: ${{ Number(transaction.commission_fee ?? 0).toFixed(2) }}
             </p>
-            <span
+              <span
               class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
               :class="getStatusClass(transaction.status)"
             >
