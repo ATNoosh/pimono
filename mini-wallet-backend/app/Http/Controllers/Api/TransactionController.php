@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreTransactionRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -37,20 +38,8 @@ class TransactionController extends Controller
     /**
      * Create a new money transfer transaction.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreTransactionRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'receiver_id' => 'required|integer|exists:users,id',
-            'amount' => 'required|numeric|min:0.01|max:999999.99',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         $sender = $request->user();
         $receiverId = (int) $request->input('receiver_id');
         $amount = (float) $request->input('amount');
