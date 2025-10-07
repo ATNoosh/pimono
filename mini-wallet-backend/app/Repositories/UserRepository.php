@@ -21,5 +21,3 @@ class UserRepository
         $user->deductBalance($amount);
     }
 }
-
-

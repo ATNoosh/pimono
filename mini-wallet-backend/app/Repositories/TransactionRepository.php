@@ -28,5 +28,3 @@ class TransactionRepository
         return Transaction::with(['sender:id,name', 'receiver:id,name'])->find($id);
     }
 }
-
-

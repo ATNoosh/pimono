@@ -19,8 +19,7 @@ class TransferService
         private readonly TransactionRepository $transactionRepository,
         private readonly IdempotencyRepository $idempotencyRepository,
         private readonly OutboxRepository $outboxRepository,
-    ) {
-    }
+    ) {}
 
     public function executeTransfer(User $sender, int $receiverId, float $amount, ?string $idempotencyKey = null): Transaction
     {
@@ -45,6 +44,7 @@ class TransferService
     private function isTransientTransactionError(\Throwable $e): bool
     {
         $message = $e->getMessage();
+
         return str_contains($message, 'Deadlock found')
             || str_contains($message, 'Lock wait timeout exceeded')
             || str_contains($message, 'could not serialize access due to')
@@ -55,6 +55,7 @@ class TransferService
     {
         $commissionFee = Transaction::calculateCommission($amount);
         $totalAmount = Transaction::calculateTotalAmount($amount);
+
         return [$commissionFee, $totalAmount];
     }
 
@@ -73,6 +74,7 @@ class TransferService
                         'error' => $e->getMessage(),
                     ]);
                     usleep(100000 * $attempt);
+
                     continue;
                 }
                 throw $e;
@@ -90,7 +92,7 @@ class TransferService
             $lockedSender = $this->userRepository->lockById($sender->id);
             $lockedReceiver = $this->userRepository->lockById($receiver->id);
 
-            if (!$lockedSender->hasSufficientBalance($totalAmount)) {
+            if (! $lockedSender->hasSufficientBalance($totalAmount)) {
                 abort(422, 'Insufficient balance');
             }
 
@@ -131,5 +133,3 @@ class TransferService
         });
     }
 }
-
-

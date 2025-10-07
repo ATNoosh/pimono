@@ -27,5 +27,3 @@ class CreateTransactionTest extends TestCase
         $this->assertEquals(110.00, $receiver->fresh()->balance);
     }
 }
-
-

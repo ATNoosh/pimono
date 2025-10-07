@@ -22,10 +22,10 @@ class TransferServiceTest extends TestCase
     private function makeService(): TransferService
     {
         return new TransferService(
-            new UserRepository(),
-            new TransactionRepository(),
-            new IdempotencyRepository(),
-            new OutboxRepository(),
+            new UserRepository,
+            new TransactionRepository,
+            new IdempotencyRepository,
+            new OutboxRepository,
         );
     }
 
@@ -89,7 +89,7 @@ class TransferServiceTest extends TestCase
 
         $thrown = false;
         DB::beforeExecuting(function () use (&$thrown) {
-            if (!$thrown) {
+            if (! $thrown) {
                 $thrown = true;
                 throw new \RuntimeException('Deadlock found when trying to get lock');
             }
@@ -101,5 +101,3 @@ class TransferServiceTest extends TestCase
         $this->assertEquals(110.00, $receiver->fresh()->balance);
     }
 }
-
-

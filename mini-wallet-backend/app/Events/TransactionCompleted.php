@@ -3,9 +3,7 @@
 namespace App\Events;
 
 use App\Models\Transaction;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -33,15 +31,13 @@ class TransactionCompleted implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('user.' . $this->transaction->sender_id),
-            new PrivateChannel('user.' . $this->transaction->receiver_id),
+            new PrivateChannel('user.'.$this->transaction->sender_id),
+            new PrivateChannel('user.'.$this->transaction->receiver_id),
         ];
     }
 
     /**
      * Get the data to broadcast.
-     *
-     * @return array
      */
     public function broadcastWith(): array
     {
@@ -53,8 +49,6 @@ class TransactionCompleted implements ShouldBroadcast
 
     /**
      * The event's broadcast name.
-     *
-     * @return string
      */
     public function broadcastAs(): string
     {

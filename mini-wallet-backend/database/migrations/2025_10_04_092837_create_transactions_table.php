@@ -21,7 +21,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'completed', 'failed'])->default('pending');
             $table->text('description')->nullable();
             $table->timestamps();
-            
+
             // Indexes for performance
             $table->index(['sender_id', 'created_at']);
             $table->index(['receiver_id', 'created_at']);

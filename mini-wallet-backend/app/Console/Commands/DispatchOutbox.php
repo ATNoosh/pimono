@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use App\Events\TransactionCompleted;
 use App\Models\Transaction;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class DispatchOutbox extends Command
 {
     protected $signature = 'outbox:dispatch {--limit=100}';
+
     protected $description = 'Dispatch pending outbox messages';
 
     public function handle(): int
@@ -49,8 +50,7 @@ class DispatchOutbox extends Command
         }
 
         $this->info('Processed '.count($messages).' outbox messages.');
+
         return self::SUCCESS;
     }
 }
-
-

@@ -3,14 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreTransactionRequest;
 use App\Models\Transaction;
 use App\Models\User;
-use Illuminate\Http\Request;
-use App\Http\Requests\StoreTransactionRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
@@ -21,7 +18,7 @@ class TransactionController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         // Get paginated transactions for the user
         $transactions = Transaction::where('sender_id', $user->id)
             ->orWhere('receiver_id', $user->id)
@@ -64,6 +61,7 @@ class TransactionController extends Controller
             ], 201);
         } catch (\Throwable $e) {
             $status = $e->getCode() == 422 ? 422 : 500;
+
             return response()->json([
                 'message' => $status === 422 ? 'Insufficient balance' : 'Transfer failed',
                 'error' => $e->getMessage(),
