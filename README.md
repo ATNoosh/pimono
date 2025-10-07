@@ -250,19 +250,6 @@ curl -X POST \
 
 The frontend will be available at `http://localhost:5173`
 
-## Makefile shortcuts
-
-For convenience on Unix-like systems:
-
-```bash
-make setup-backend      # install deps and migrate
-make serve-backend      # run php artisan serve
-make outbox-dispatch    # run outbox dispatcher once
-make setup-frontend     # install frontend deps
-make dev-frontend       # vite dev server
-make build-frontend     # build frontend
-```
-
 ## Windows PowerShell scripts
 
 For Windows users without `make`:
